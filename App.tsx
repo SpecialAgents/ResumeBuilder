@@ -3,8 +3,12 @@ import { ResumeData, TemplateType } from './types';
 import Editor from './components/Editor';
 import ResumeTemplates from './components/ResumeTemplates';
 import ATSOptimizer from './components/ATSOptimizer';
+import LandingPage from './components/LandingPage';
 import { generateDocx } from './services/docxExport';
-import { Printer, Download, Layout, FileText, Search, Sparkles, FileCode, Eye, Menu, X } from 'lucide-react';
+import { 
+  Printer, Download, Layout, FileText, Search, Sparkles, 
+  FileCode, Eye, Menu, X, ArrowLeft, Sun, Moon 
+} from 'lucide-react';
 
 const INITIAL_DATA: ResumeData = {
   fullName: "Alex Morgan",
@@ -51,11 +55,16 @@ const App: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isStarted, setIsStarted] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   // Persistence
   useEffect(() => {
     setIsClient(true);
     const saved = localStorage.getItem('resumeData');
+    const hasStarted = localStorage.getItem('appStarted');
+    const savedTheme = localStorage.getItem('theme');
+    
     if (saved) {
       try {
         setResumeData(JSON.parse(saved));
@@ -63,6 +72,9 @@ const App: React.FC = () => {
         console.error("Failed to load saved data");
       }
     }
+    
+    if (hasStarted === 'true') setIsStarted(true);
+    if (savedTheme === 'dark') setDarkMode(true);
   }, []);
 
   useEffect(() => {
@@ -71,12 +83,33 @@ const App: React.FC = () => {
     }
   }, [resumeData, isClient]);
 
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    }
+  }, [darkMode, isClient]);
+
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+
+  const handleStart = () => {
+    setIsStarted(true);
+    if (isClient) {
+      localStorage.setItem('appStarted', 'true');
+    }
+  };
+
+  const handleBackToLanding = () => {
+    setIsStarted(false);
+    if (isClient) {
+      localStorage.removeItem('appStarted');
+    }
+  };
+
   const handleDownloadPDF = () => {
     const element = document.getElementById('resume-preview');
     if (!element) return;
     setIsDownloading(true);
 
-    // Tweaked options to avoid blank second page
     const opt = {
       margin: 0, 
       filename: `${resumeData.fullName.replace(/\s+/g, '_')}_Resume.pdf`,
@@ -84,9 +117,6 @@ const App: React.FC = () => {
       html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-
-    // Temporarily force height to A4 exact if needed, but 'min-height' in CSS usually causes the issue.
-    // We rely on the CSS change in ResumeTemplates (overflow-hidden) combined with margin:0 here.
 
     // @ts-ignore
     if (window.html2pdf) {
@@ -158,191 +188,219 @@ const App: React.FC = () => {
   if (!isClient) return null;
 
   return (
-    <div className="min-h-screen bg-slate-100 font-sans text-slate-900 flex flex-col h-screen overflow-hidden">
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full bg-slate-900 text-white z-50 px-4 md:px-6 py-3 flex justify-between items-center shadow-md print:hidden h-16">
-        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <Sparkles className="text-indigo-400" />
-          <span className="hidden sm:inline">ResumeAI</span>
-          <span className="sm:hidden">CV.AI</span>
-        </div>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex gap-4">
-           <button 
-             onClick={() => setActiveTab('editor')}
-             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'editor' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
-           >
-             <div className="flex items-center gap-2"><FileText size={16} /> Builder</div>
-           </button>
-           <button 
-             onClick={() => setActiveTab('ats')}
-             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'ats' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
-           >
-             <div className="flex items-center gap-2"><Search size={16} /> ATS Check</div>
-           </button>
-        </div>
-
-        {/* Export Actions (Desktop) */}
-        <div className="hidden md:flex items-center gap-2">
-          <button onClick={handleDownloadDocx} className="bg-slate-800 text-indigo-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700">
-             DOCX
-          </button>
-          <button onClick={handleDownloadHTML} className="bg-slate-800 text-indigo-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700">
-            HTML
-          </button>
-          <button onClick={handleDownloadPDF} disabled={isDownloading} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 disabled:opacity-75">
-            {isDownloading ? (
-               <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-            ) : <Download size={16} />} 
-            PDF
-          </button>
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden flex items-center gap-2">
-           <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="p-2 text-slate-300">
-              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
-           </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Dropdown */}
-      {showMobileMenu && (
-        <div className="fixed top-16 left-0 w-full bg-slate-800 text-white z-40 p-4 shadow-xl border-t border-slate-700 md:hidden animate-in slide-in-from-top-2">
-           <div className="flex flex-col gap-3">
-              <button onClick={() => { handleDownloadDocx(); setShowMobileMenu(false); }} className="p-3 bg-slate-700 rounded-lg flex items-center gap-3">
-                <FileText size={18} /> Download DOCX
+    <div className={`${darkMode ? 'dark' : ''} transition-colors duration-300`}>
+      {!isStarted ? (
+        <LandingPage onStart={handleStart} darkMode={darkMode} onToggleTheme={toggleDarkMode} />
+      ) : (
+        <div className="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 flex flex-col h-screen overflow-hidden animate-in fade-in duration-500">
+          {/* Navbar */}
+          <nav className="fixed top-0 w-full bg-slate-900 text-white z-50 px-4 md:px-6 py-3 flex justify-between items-center shadow-md print:hidden h-16">
+            <div className="flex items-center gap-4 font-bold text-xl tracking-tight">
+              <button 
+                onClick={handleBackToLanding}
+                className="hover:text-indigo-400 transition-colors"
+                title="Back to home"
+              >
+                <ArrowLeft size={20} />
               </button>
-              <button onClick={() => { handleDownloadHTML(); setShowMobileMenu(false); }} className="p-3 bg-slate-700 rounded-lg flex items-center gap-3">
-                <FileCode size={18} /> Download HTML
-              </button>
-              <button onClick={() => { handleDownloadPDF(); setShowMobileMenu(false); }} className="p-3 bg-white text-slate-900 font-bold rounded-lg flex items-center gap-3">
-                <Download size={18} /> Download PDF
-              </button>
-           </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 pt-16 px-0 md:px-4 max-w-[1600px] mx-auto w-full flex gap-6 overflow-hidden">
-        
-        {/* Left Panel: Editor/ATS */}
-        <div className={`
-            w-full md:w-5/12 xl:w-1/3 flex flex-col gap-4 h-full overflow-y-auto print:hidden scrollbar-hide bg-slate-100 p-4 md:p-0
-            ${activeTab === 'preview' ? 'hidden md:flex' : 'flex'}
-        `}>
-          {activeTab === 'ats' ? (
-            <div className="h-full animate-in fade-in slide-in-from-right-4 pb-20 md:pb-0">
-               <ATSOptimizer resumeData={resumeData} />
+              <div className="flex items-center gap-2">
+                <Sparkles className="text-indigo-400" />
+                <span className="hidden sm:inline">ResumeAI</span>
+                <span className="sm:hidden">CV.AI</span>
+              </div>
             </div>
-          ) : (
-            <div className="animate-in fade-in slide-in-from-left-4 pb-20 md:pb-0">
-               {/* Template Selector */}
-               <div className="bg-white p-4 rounded-lg shadow-sm mb-4 border border-slate-200">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Layout size={14} /> Choose Template
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {Object.values(TemplateType).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setActiveTemplate(t)}
-                        className={`py-2 px-1 text-xs font-semibold rounded border-2 transition-all capitalize ${
-                          activeTemplate === t 
-                            ? 'border-indigo-600 bg-indigo-50 text-indigo-700' 
-                            : 'border-slate-200 hover:border-slate-400 text-slate-600'
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+
+            {/* Desktop Nav & Actions */}
+            <div className="hidden md:flex items-center gap-4">
+               <div className="flex gap-2 mr-4 border-r border-slate-700 pr-4">
+                  <button 
+                    onClick={() => setActiveTab('editor')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'editor' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
+                  >
+                    <div className="flex items-center gap-2"><FileText size={16} /> Builder</div>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('ats')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'ats' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
+                  >
+                    <div className="flex items-center gap-2"><Search size={16} /> ATS Check</div>
+                  </button>
                </div>
-               <Editor data={resumeData} onChange={setResumeData} />
+               
+               <button 
+                  onClick={toggleDarkMode} 
+                  className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300 mr-2"
+                  title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                  {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+
+               <div className="flex items-center gap-2">
+                 <button onClick={handleDownloadDocx} className="bg-slate-800 text-indigo-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700">
+                    DOCX
+                 </button>
+                 <button onClick={handleDownloadPDF} disabled={isDownloading} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 disabled:opacity-75">
+                   {isDownloading ? (
+                      <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                   ) : <Download size={16} />} 
+                   PDF
+                 </button>
+               </div>
+            </div>
+
+            {/* Mobile Actions Toggle */}
+            <div className="md:hidden flex items-center gap-2">
+               <button onClick={toggleDarkMode} className="p-2 text-slate-300">
+                  {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+               </button>
+               <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="p-2 text-slate-300">
+                  {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+               </button>
+            </div>
+          </nav>
+
+          {/* Mobile Menu Dropdown */}
+          {showMobileMenu && (
+            <div className="fixed top-16 left-0 w-full bg-slate-800 text-white z-40 p-4 shadow-xl border-t border-slate-700 md:hidden animate-in slide-in-from-top-2">
+               <div className="flex flex-col gap-3">
+                  <button onClick={() => { handleDownloadDocx(); setShowMobileMenu(false); }} className="p-3 bg-slate-700 rounded-lg flex items-center gap-3 text-left">
+                    <FileText size={18} /> Download DOCX
+                  </button>
+                  <button onClick={() => { handleDownloadPDF(); setShowMobileMenu(false); }} className="p-3 bg-white text-slate-900 font-bold rounded-lg flex items-center gap-3 text-left">
+                    <Download size={18} /> Download PDF
+                  </button>
+               </div>
             </div>
           )}
-        </div>
 
-        {/* Right Panel: Preview */}
-        <div className={`
-           md:flex md:w-7/12 xl:w-2/3 bg-slate-200/50 md:rounded-xl md:border border-slate-300/50 items-start justify-center overflow-auto h-full p-4 md:p-8 print:block print:w-full print:h-auto print:bg-white print:p-0 print:border-none print:static print:shadow-none print:overflow-visible relative
-           ${activeTab === 'preview' ? 'flex fixed inset-0 z-40 pt-20 bg-slate-200' : 'hidden'}
-           ${activeTab === 'preview' ? 'w-full' : ''}
-        `}>
-          <div className="origin-top scale-[0.55] sm:scale-[0.65] lg:scale-[0.70] xl:scale-[0.85] 2xl:scale-100 transition-transform duration-200 print:scale-100 print:transform-none">
-             <div className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] print:w-full print:min-h-0 print:h-auto overflow-hidden">
-                <ResumeTemplates data={resumeData} template={activeTemplate} />
-             </div>
+          {/* Main Content */}
+          <main className="flex-1 pt-16 px-0 md:px-4 max-w-[1600px] mx-auto w-full flex gap-6 overflow-hidden">
+            
+            {/* Left Panel: Editor/ATS */}
+            <div className={`
+                w-full md:w-5/12 xl:w-1/3 flex flex-col gap-4 h-full overflow-y-auto print:hidden scrollbar-hide bg-slate-100 dark:bg-slate-950 p-4 md:p-0 transition-colors
+                ${activeTab === 'preview' ? 'hidden md:flex' : 'flex'}
+            `}>
+              {activeTab === 'ats' ? (
+                <div className="h-full animate-in fade-in slide-in-from-right-4 pb-20 md:pb-0">
+                   <ATSOptimizer resumeData={resumeData} />
+                </div>
+              ) : (
+                <div className="animate-in fade-in slide-in-from-left-4 pb-20 md:pb-0">
+                   {/* Template Selector */}
+                   <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm mb-4 border border-slate-200 dark:border-slate-800 transition-colors">
+                      <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <Layout size={14} /> Choose Template
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {Object.values(TemplateType).map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setActiveTemplate(t)}
+                            className={`py-2 px-1 text-xs font-semibold rounded border-2 transition-all capitalize ${
+                              activeTemplate === t 
+                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400' 
+                                : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400'
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                   </div>
+                   <Editor data={resumeData} onChange={setResumeData} />
+                </div>
+              )}
+            </div>
+
+            {/* Right Panel: Preview */}
+            <div className={`
+               md:flex md:w-7/12 xl:w-2/3 bg-slate-200/50 dark:bg-slate-900/50 md:rounded-xl md:border border-slate-300/50 dark:border-slate-800/50 items-start justify-center overflow-auto h-full p-4 md:p-8 print:block print:w-full print:h-auto print:bg-white print:p-0 print:border-none print:static print:shadow-none print:overflow-visible relative transition-colors
+               ${activeTab === 'preview' ? 'flex fixed inset-0 z-40 pt-20 bg-slate-200 dark:bg-slate-950' : 'hidden'}
+               ${activeTab === 'preview' ? 'w-full' : ''}
+            `}>
+              <div className="origin-top scale-[0.55] sm:scale-[0.65] lg:scale-[0.70] xl:scale-[0.85] 2xl:scale-100 transition-transform duration-200 print:scale-100 print:transform-none">
+                 <div className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] print:w-full print:min-h-0 print:h-auto overflow-hidden">
+                    <ResumeTemplates data={resumeData} template={activeTemplate} />
+                 </div>
+              </div>
+            </div>
+
+          </main>
+
+          {/* Mobile Bottom Nav */}
+          <div className="md:hidden fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-around p-3 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-colors">
+            <button 
+              onClick={() => setActiveTab('editor')}
+              className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'editor' ? 'text-indigo-600' : 'text-slate-400'}`}
+            >
+               <FileText size={20} /> Builder
+            </button>
+            <button 
+              onClick={() => setActiveTab('ats')}
+              className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'ats' ? 'text-emerald-600' : 'text-slate-400'}`}
+            >
+               <Search size={20} /> ATS Check
+            </button>
+            <button 
+              onClick={() => setActiveTab('preview')}
+              className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'preview' ? 'text-purple-600' : 'text-slate-400'}`}
+            >
+               <Eye size={20} /> Preview
+            </button>
           </div>
+
+          <style>{`
+            @media print {
+              @page { margin: 0; size: auto; }
+              body { 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                background: white; 
+                margin: 0; 
+                padding: 0;
+              }
+              .scrollbar-hide::-webkit-scrollbar { display: none; }
+              * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+            }
+            .input-field {
+              width: 100%;
+              padding: 0.75rem;
+              border: 1px solid #e2e8f0;
+              border-radius: 0.5rem;
+              font-size: 0.875rem;
+              outline: none;
+              transition: all 0.2s;
+            }
+            .dark .input-field {
+              background-color: #1e293b;
+              border-color: #334155;
+              color: #f1f5f9;
+            }
+            .input-field:focus {
+              border-color: #6366f1;
+              box-shadow: 0 0 0 1px #6366f1;
+            }
+            ::-webkit-scrollbar {
+              width: 8px;
+              height: 8px;
+            }
+            ::-webkit-scrollbar-track {
+              background: transparent; 
+            }
+            ::-webkit-scrollbar-thumb {
+              background: #cbd5e1; 
+              border-radius: 4px;
+            }
+            .dark ::-webkit-scrollbar-thumb {
+              background: #334155;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8; 
+            }
+          `}</style>
         </div>
-
-      </main>
-
-      {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-3 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <button 
-          onClick={() => setActiveTab('editor')}
-          className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'editor' ? 'text-indigo-600' : 'text-slate-400'}`}
-        >
-           <FileText size={20} /> Builder
-        </button>
-        <button 
-          onClick={() => setActiveTab('ats')}
-          className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'ats' ? 'text-emerald-600' : 'text-slate-400'}`}
-        >
-           <Search size={20} /> ATS Check
-        </button>
-        <button 
-          onClick={() => setActiveTab('preview')}
-          className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'preview' ? 'text-purple-600' : 'text-slate-400'}`}
-        >
-           <Eye size={20} /> Preview
-        </button>
-      </div>
-
-      {/* Global Styles for Print */}
-      <style>{`
-        @media print {
-          @page { margin: 0; size: auto; }
-          body { 
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
-            background: white; 
-            margin: 0; 
-            padding: 0;
-          }
-          .scrollbar-hide::-webkit-scrollbar { display: none; }
-          * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
-        }
-        .input-field {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-        .input-field:focus {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 1px #6366f1;
-        }
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #cbd5e1; 
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8; 
-        }
-      `}</style>
+      )}
     </div>
   );
 };
