@@ -12,11 +12,13 @@ const cleanJSON = (text: string) => {
 
 export const generateSummary = async (jobTitle: string, skills: string): Promise<string> => {
   const ai = getAIClient();
-  const prompt = `Write a professional, concise (3-4 sentences), and impactful resume summary for a ${jobTitle} with skills in: ${skills}. Focus on value and achievements. Do not include placeholders.`;
+  const prompt = `Write a professional, high-impact resume summary for a ${jobTitle} with skills in: ${skills}. 
+  Focus on specific achievements and value proposition. Use active language. 
+  The summary should be approximately 3-4 sentences and ATS-friendly. Do not use placeholders.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
     return response.text || "";
@@ -28,12 +30,14 @@ export const generateSummary = async (jobTitle: string, skills: string): Promise
 
 export const optimizeBulletPoint = async (text: string, role: string): Promise<string> => {
   const ai = getAIClient();
-  const prompt = `Rewrite the following resume bullet point for a ${role} role to be more result-oriented, using strong action verbs and quantifying results if implied. Keep it to one concise sentence.
+  const prompt = `You are a career expert. Rewrite the following resume bullet point for a ${role} to be more result-oriented and impactful. 
+  Follow the STAR (Situation, Task, Action, Result) method principles. Start with a strong action verb and quantify results if possible.
+  Keep it to exactly one sentence.
   Original: "${text}"`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
     return response.text || text;
@@ -67,7 +71,7 @@ export const analyzeATS = async (resumeData: ResumeData, jobDescription: string)
     required: ["score", "missingKeywords", "suggestions"]
   };
 
-  const prompt = `You are an expert ATS (Applicant Tracking System) scanner. Analyze the provided resume JSON against the Job Description.
+  const prompt = `Analyze this resume against the provided Job Description like a top-tier recruiter and ATS system.
   
   Job Description:
   ${jobDescription}
@@ -75,12 +79,15 @@ export const analyzeATS = async (resumeData: ResumeData, jobDescription: string)
   Resume JSON:
   ${resumeText}
 
-  Provide an objective match score (0-100), identify critical missing hard/soft skills (keywords), and give 3 specific suggestions for improvement.
+  Task:
+  1. Score the resume match from 0-100.
+  2. Identify critical missing keywords (technologies, skills, certifications).
+  3. Provide 3 specific, high-value suggestions to increase the match rate.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -88,14 +95,15 @@ export const analyzeATS = async (resumeData: ResumeData, jobDescription: string)
       }
     });
 
-    const result = JSON.parse(cleanJSON(response.text));
+    const text = response.text || "{}";
+    const result = JSON.parse(cleanJSON(text));
     return result as ATSAnalysis;
   } catch (error) {
     console.error("Error analyzing ATS:", error);
     return {
       score: 0,
-      missingKeywords: ["Error analyzing resume"],
-      suggestions: ["Please try again."]
+      missingKeywords: ["Connection error"],
+      suggestions: ["Please check your internet and try again."]
     };
   }
 };

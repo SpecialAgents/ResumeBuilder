@@ -180,3 +180,73 @@ export const generateDocx = async (data: ResumeData) => {
   const blob = await Packer.toBlob(doc);
   saveAs(blob, `${data.fullName.replace(/\s+/g, "_")}_Resume.docx`);
 };
+
+export const generateGuideDocx = async () => {
+  const sections = [
+    new Paragraph({
+      text: "ResumeAI: The Complete User Guide",
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 },
+    }),
+    new Paragraph({
+      text: "Step 1: Foundation & Personal Branding",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 100 },
+    }),
+    new Paragraph({
+      text: "Start with the 'Personal Information' section. Your name, email, and professional links are the foundation. Use a professional email and ensure links are correct.",
+    }),
+    new Paragraph({
+      text: "Step 2: Crafting the Hook with AI",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 100 },
+    }),
+    new Paragraph({
+      text: "Use the 'Auto-Generate' feature in the Summary section. The AI analyzes your job title and skills to create a powerful opening statement.",
+    }),
+    new Paragraph({
+      text: "Step 3: Results-Oriented Experience",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 100 },
+    }),
+    new Paragraph({
+      text: "Add your work experience and use 'Enhance Bullets'. This tool rewrites your duties using the STAR method (Situation, Task, Action, Result) to emphasize impact.",
+    }),
+    new Paragraph({
+      text: "Step 4: ATS Optimization",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 100 },
+    }),
+    new Paragraph({
+      text: "Switch to the 'ATS Check' tab. Paste the job description you are applying for. The AI will score your match and list missing keywords that you should integrate into your skills or experience sections.",
+    }),
+    new Paragraph({
+      text: "Step 5: Visual Style and Export",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 100 },
+    }),
+    new Paragraph({
+      text: "Select a template (Modern, Professional, or Minimalist) and export your final document as PDF, DOCX, or HTML.",
+    }),
+    new Paragraph({
+      text: "Expert Tips:",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { before: 400, after: 100 },
+    }),
+    new Paragraph({ text: "• Aim for a match score above 85% for best results.", bullet: { level: 0 } }),
+    new Paragraph({ text: "• Use strong action verbs at the start of every bullet point.", bullet: { level: 0 } }),
+    new Paragraph({ text: "• Quantify your achievements (e.g., 'Improved efficiency by 20%').", bullet: { level: 0 } }),
+    new Paragraph({ text: "• Keep your resume to a single page whenever possible.", bullet: { level: 0 } }),
+  ];
+
+  const doc = new Document({
+    sections: [{
+      properties: {},
+      children: sections,
+    }],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, "ResumeAI_User_Guide.docx");
+};

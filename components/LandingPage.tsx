@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap, ShieldCheck, FileDown, ArrowRight, CheckCircle2, Sun, Moon } from 'lucide-react';
+import { Sparkles, Zap, ShieldCheck, FileDown, ArrowRight, CheckCircle2, Sun, Moon, Search, FileText } from 'lucide-react';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -37,7 +37,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, darkMode, onToggleTh
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="animate-in fade-in slide-in-from-left-8 duration-700">
             <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 rounded-full text-sm font-bold mb-6 border border-indigo-100 dark:border-indigo-800">
-              <Zap size={16} /> Powered by Gemini 2.5 Flash
+              <Zap size={16} /> Powered by Gemini 3 Flash
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6">
               Land your dream job with <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">AI precision.</span>
@@ -110,61 +110,60 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, darkMode, onToggleTh
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="bg-slate-50 dark:bg-slate-900 py-24 px-6 transition-colors">
+      {/* How It Works Section */}
+      <section className="py-24 px-6 border-y border-slate-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">Everything you need to get hired.</h2>
-            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Built by career experts and powered by state-of-the-art AI to give you an unfair advantage.</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">How it works</h2>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Three simple steps to a professional, high-converting resume.</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={<Zap className="text-amber-500" />}
-              title="AI Content Engine"
-              description="Automatically generate professional summaries and action-oriented bullet points that capture recruiter attention."
+          <div className="grid md:grid-cols-3 gap-12 relative">
+            <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-slate-100 dark:bg-slate-800 z-0"></div>
+            
+            <WorkflowStep 
+              icon={<FileText className="text-indigo-600" />}
+              title="1. Draft your content"
+              description="Input your basic experience and education. Use our AI summary generator to find the perfect hook."
             />
-            <FeatureCard 
-              icon={<ShieldCheck className="text-emerald-500" />}
-              title="ATS Compatibility"
-              description="Real-time analysis against job descriptions. Identify missing keywords and boost your match score instantly."
+            <WorkflowStep 
+              icon={<Search className="text-emerald-600" />}
+              title="2. Optimize with AI"
+              description="Enhance your bullet points using the STAR method and scan against Job Descriptions for ATS keywords."
             />
-            <FeatureCard 
-              icon={<FileDown className="text-indigo-500" />}
-              title="Multi-Format Export"
-              description="Download your resume in pixel-perfect PDF, fully editable Word (DOCX), or self-contained HTML formats."
+            <WorkflowStep 
+              icon={<FileDown className="text-purple-600" />}
+              title="3. Export & Apply"
+              description="Choose a professional template and download as a high-quality PDF or DOCX file ready for submission."
             />
           </div>
         </div>
       </section>
 
-      {/* Quick Checklist */}
-      <section className="py-24 px-6 max-w-4xl mx-auto">
-        <div className="bg-slate-900 dark:bg-indigo-950/40 rounded-[32px] p-8 md:p-16 text-white relative overflow-hidden border dark:border-indigo-900/50">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl"></div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-bold mb-8">Why use ResumeAI?</h2>
-            <div className="grid sm:grid-cols-2 gap-6">
-              {[
-                "100% ATS-Friendly Templates",
-                "Instant AI Feedback",
-                "Clean Single-Page PDF Export",
-                "Multiple Design Styles",
-                "No Registration Required",
-                "Real-time Editor Preview"
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <CheckCircle2 className="text-indigo-400 shrink-0" size={20} />
-                  <span className="text-slate-300 font-medium">{item}</span>
-                </div>
-              ))}
-            </div>
-            <button 
-              onClick={onStart}
-              className="mt-12 bg-white text-slate-900 px-10 py-4 rounded-xl font-bold text-lg hover:bg-slate-100 transition-all shadow-xl"
-            >
-              Start Building Now
-            </button>
+      {/* Features Grid */}
+      <section className="bg-slate-50 dark:bg-slate-900 py-24 px-6 transition-colors">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">Built for candidates, not computers.</h2>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">State-of-the-art AI combined with clean, human-readable designs.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<Zap className="text-amber-500" />}
+              title="Gemini 3 Powered"
+              description="Leveraging the latest in LLM technology to provide human-level editing and strategic career advice."
+            />
+            <FeatureCard 
+              icon={<ShieldCheck className="text-emerald-500" />}
+              title="ATS Compatibility"
+              description="Real-time match scoring ensures you're never invisible to automated recruitment systems."
+            />
+            <FeatureCard 
+              icon={<FileDown className="text-indigo-500" />}
+              title="Multi-Format Export"
+              description="Pixel-perfect PDF, fully editable Word (DOCX), or self-contained HTML formats for any scenario."
+            />
           </div>
         </div>
       </section>
@@ -180,6 +179,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, darkMode, onToggleTh
     </div>
   );
 };
+
+const WorkflowStep = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
+  <div className="relative z-10 flex flex-col items-center text-center">
+    <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full border-4 border-slate-50 dark:border-slate-800 flex items-center justify-center mb-6 shadow-xl">
+      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+        {icon}
+      </div>
+    </div>
+    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{title}</h3>
+    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm max-w-[280px]">
+      {description}
+    </p>
+  </div>
+);
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
   <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 hover:shadow-xl dark:hover:shadow-slate-950/50 hover:-translate-y-1 transition-all duration-300">

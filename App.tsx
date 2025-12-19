@@ -4,10 +4,11 @@ import Editor from './components/Editor';
 import ResumeTemplates from './components/ResumeTemplates';
 import ATSOptimizer from './components/ATSOptimizer';
 import LandingPage from './components/LandingPage';
+import Guide from './components/Guide';
 import { generateDocx } from './services/docxExport';
 import { 
   Printer, Download, Layout, FileText, Search, Sparkles, 
-  FileCode, Eye, Menu, X, ArrowLeft, Sun, Moon 
+  FileCode, Eye, Menu, X, ArrowLeft, Sun, Moon, BookOpen, Code
 } from 'lucide-react';
 
 const INITIAL_DATA: ResumeData = {
@@ -46,7 +47,7 @@ const INITIAL_DATA: ResumeData = {
   projects: []
 };
 
-type ActiveTab = 'editor' | 'ats' | 'preview';
+type ActiveTab = 'editor' | 'ats' | 'preview' | 'guide';
 
 const App: React.FC = () => {
   const [resumeData, setResumeData] = useState<ResumeData>(INITIAL_DATA);
@@ -225,6 +226,12 @@ const App: React.FC = () => {
                   >
                     <div className="flex items-center gap-2"><Search size={16} /> ATS Check</div>
                   </button>
+                  <button 
+                    onClick={() => setActiveTab('guide')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'guide' ? 'bg-amber-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
+                  >
+                    <div className="flex items-center gap-2"><BookOpen size={16} /> Guide</div>
+                  </button>
                </div>
                
                <button 
@@ -236,7 +243,10 @@ const App: React.FC = () => {
                 </button>
 
                <div className="flex items-center gap-2">
-                 <button onClick={handleDownloadDocx} className="bg-slate-800 text-indigo-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700">
+                 <button onClick={handleDownloadHTML} className="bg-slate-800 text-emerald-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700" title="Download HTML">
+                    <Code size={16} />
+                 </button>
+                 <button onClick={handleDownloadDocx} className="bg-slate-800 text-indigo-100 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700" title="Download Word">
                     DOCX
                  </button>
                  <button onClick={handleDownloadPDF} disabled={isDownloading} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 disabled:opacity-75">
@@ -263,6 +273,9 @@ const App: React.FC = () => {
           {showMobileMenu && (
             <div className="fixed top-16 left-0 w-full bg-slate-800 text-white z-40 p-4 shadow-xl border-t border-slate-700 md:hidden animate-in slide-in-from-top-2">
                <div className="flex flex-col gap-3">
+                  <button onClick={() => { handleDownloadHTML(); setShowMobileMenu(false); }} className="p-3 bg-slate-700 rounded-lg flex items-center gap-3 text-left">
+                    <Code size={18} /> Download HTML
+                  </button>
                   <button onClick={() => { handleDownloadDocx(); setShowMobileMenu(false); }} className="p-3 bg-slate-700 rounded-lg flex items-center gap-3 text-left">
                     <FileText size={18} /> Download DOCX
                   </button>
@@ -276,16 +289,23 @@ const App: React.FC = () => {
           {/* Main Content */}
           <main className="flex-1 pt-16 px-0 md:px-4 max-w-[1600px] mx-auto w-full flex gap-6 overflow-hidden">
             
-            {/* Left Panel: Editor/ATS */}
+            {/* Left Panel: Editor/ATS/Guide */}
             <div className={`
                 w-full md:w-5/12 xl:w-1/3 flex flex-col gap-4 h-full overflow-y-auto print:hidden scrollbar-hide bg-slate-100 dark:bg-slate-950 p-4 md:p-0 transition-colors
                 ${activeTab === 'preview' ? 'hidden md:flex' : 'flex'}
+                ${activeTab === 'guide' ? 'md:w-full md:max-w-none xl:w-full' : ''}
             `}>
-              {activeTab === 'ats' ? (
+              {activeTab === 'ats' && (
                 <div className="h-full animate-in fade-in slide-in-from-right-4 pb-20 md:pb-0">
                    <ATSOptimizer resumeData={resumeData} />
                 </div>
-              ) : (
+              )}
+              {activeTab === 'guide' && (
+                <div className="h-full animate-in fade-in slide-in-from-bottom-4 pb-20 md:pb-0">
+                   <Guide />
+                </div>
+              )}
+              {activeTab === 'editor' && (
                 <div className="animate-in fade-in slide-in-from-left-4 pb-20 md:pb-0">
                    {/* Template Selector */}
                    <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm mb-4 border border-slate-200 dark:border-slate-800 transition-colors">
@@ -313,18 +333,20 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Right Panel: Preview */}
-            <div className={`
-               md:flex md:w-7/12 xl:w-2/3 bg-slate-200/50 dark:bg-slate-900/50 md:rounded-xl md:border border-slate-300/50 dark:border-slate-800/50 items-start justify-center overflow-auto h-full p-4 md:p-8 print:block print:w-full print:h-auto print:bg-white print:p-0 print:border-none print:static print:shadow-none print:overflow-visible relative transition-colors
-               ${activeTab === 'preview' ? 'flex fixed inset-0 z-40 pt-20 bg-slate-200 dark:bg-slate-950' : 'hidden'}
-               ${activeTab === 'preview' ? 'w-full' : ''}
-            `}>
-              <div className="origin-top scale-[0.55] sm:scale-[0.65] lg:scale-[0.70] xl:scale-[0.85] 2xl:scale-100 transition-transform duration-200 print:scale-100 print:transform-none">
-                 <div className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] print:w-full print:min-h-0 print:h-auto overflow-hidden">
-                    <ResumeTemplates data={resumeData} template={activeTemplate} />
-                 </div>
+            {/* Right Panel: Preview (Hidden in Guide mode) */}
+            {activeTab !== 'guide' && (
+              <div className={`
+                md:flex md:w-7/12 xl:w-2/3 bg-slate-200/50 dark:bg-slate-900/50 md:rounded-xl md:border border-slate-300/50 dark:border-slate-800/50 items-start justify-center overflow-auto h-full p-4 md:p-8 print:block print:w-full print:h-auto print:bg-white print:p-0 print:border-none print:static print:shadow-none print:overflow-visible relative transition-colors
+                ${activeTab === 'preview' ? 'flex fixed inset-0 z-40 pt-20 bg-slate-200 dark:bg-slate-950' : 'hidden'}
+                ${activeTab === 'preview' ? 'w-full' : ''}
+              `}>
+                <div className="origin-top scale-[0.55] sm:scale-[0.65] lg:scale-[0.70] xl:scale-[0.85] 2xl:scale-100 transition-transform duration-200 print:scale-100 print:transform-none">
+                  <div className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] print:w-full print:min-h-0 print:h-auto overflow-hidden">
+                      <ResumeTemplates data={resumeData} template={activeTemplate} />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
           </main>
 
@@ -341,6 +363,12 @@ const App: React.FC = () => {
               className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'ats' ? 'text-emerald-600' : 'text-slate-400'}`}
             >
                <Search size={20} /> ATS Check
+            </button>
+            <button 
+              onClick={() => setActiveTab('guide')}
+              className={`flex flex-col items-center gap-1 text-xs font-medium ${activeTab === 'guide' ? 'text-amber-600' : 'text-slate-400'}`}
+            >
+               <BookOpen size={20} /> Guide
             </button>
             <button 
               onClick={() => setActiveTab('preview')}
